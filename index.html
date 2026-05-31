@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<!-- ===== SOCIAL PREVIEW (OPEN GRAPH + TWITTER) ===== -->
+	<meta property="og:title" content="IoStux PSA Method Calculator" />
+	<meta property="og:description" content="Find your perfect sensitivity using the PSA method" />
+	<meta property="og:type" content="website" />
+
+	<!-- CHANGE THIS to your real GitHub Pages link -->
+	<meta property="og:url" content="https://hvzysmxk3.github.io/PSA-Test/" />
+
+	<!-- IMPORTANT: preview image (you must upload this) -->
+	<meta property="og:image" content="file:///C:/Users/perez/OneDrive/Documents/PSA-Test/Capture.PNG" />
+
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="IoStux PSA Method Calculator" />
+	<meta name="twitter:description" content="Science-based sensitivity optimization tool. Credit to IoStux." />
+	<meta name="twitter:image" content="https://yourusername.github.io/yourrepo/preview.png" />
+    <title>PSA Method Formula Calculator</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f1115;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 950px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .card {
+            background: #1b1f2a;
+            border: 1px solid #2b3242;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .big {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        input {
+            padding: 10px;
+            background: #1b1f2a;
+            border: 1px solid #2b3242;
+            color: white;
+            width: 180px;
+        }
+
+        button {
+            padding: 10px 14px;
+            border: 1px solid #2b3242;
+            background: #1b1f2a;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2b3242;
+        }
+
+        .up { border-color: #2ecc71; }
+        .down { border-color: #e74c3c; }
+
+        #current {
+            background: #1b1f2a;
+            border: 1px solid #2b3242;
+            padding: 12px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .bar {
+            height: 10px;
+            background: #1b1f2a;
+            border: 1px solid #2b3242;
+            margin: 10px 0;
+        }
+
+        .fill {
+            height: 100%;
+            background: #4da3ff;
+            width: 0%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            border: 1px solid #2b3242;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background: #1b1f2a;
+        }
+
+        .video-section {
+            margin-top: 40px;
+            border-top: 1px solid #2b3242;
+            padding-top: 20px;
+            text-align: center;
+        }
+
+        .video-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        iframe {
+            width: 100%;
+            max-width: 800px;
+            height: 450px;
+            border: 1px solid #2b3242;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>PSA METHOD CALCULATOR</h1>
+
+    <div class="dashboard">
+        <div class="card">
+            CURRENT Sᵢ<br>
+            <div class="big" id="curS">0</div>
+        </div>
+
+        <div class="card">
+            S↑ / S↓<br>
+            <div class="big" id="range">0</div>
+        </div>
+
+        <div class="card">
+            OFFSET (D)<br>
+            <div class="big" id="step">0</div>
+        </div>
+    </div>
+
+    <div class="bar">
+        <div class="fill" id="fill"></div>
+    </div>
+
+    <div class="inputs">
+        <input type="number" id="startValue" placeholder="Starting Value (S₀)">
+        <input type="number" id="offset" placeholder="Offset (D)">
+        <button onclick="startCalculation()">Start</button>
+    </div>
+
+    <div id="current"></div>
+
+    <div style="text-align:center;">
+        <button class="up" onclick="choose('UP')">UP</button>
+        <button class="down" onclick="choose('DOWN')">DOWN</button>
+        <button onclick="undo()">Undo</button>
+        <button onclick="redo()">Redo</button>
+        <button onclick="resetCalculator()">Reset</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>i</th>
+                <th>Sᵢ</th>
+                <th>S↑</th>
+                <th>S↓</th>
+                <th>Choice</th>
+                <th>Sᵢ₊₁</th>
+            </tr>
+        </thead>
+        <tbody id="history"></tbody>
+    </table>
+
+    <!-- VIDEO -->
+    <div class="video-section">
+        <div class="video-title">
+            IoStux Finding your PERFECT Sensitivity using SCIENCE (PSA Method)
+        </div>
+
+        <iframe 
+            src="https://www.youtube.com/embed/GppILMVaNVE"
+            allowfullscreen>
+        </iframe>
+    </div>
+
+</div>
+
+<script>
+let currentS;
+let offset;
+let iteration = 0;
+
+let currentUp;
+let currentDown;
+
+let undoStack = [];
+let redoStack = [];
+
+function r(v){ return Math.round(v); }
+
+function startCalculation() {
+    currentS = Number(document.getElementById("startValue").value || 0);
+    offset = Number(document.getElementById("offset").value || 0);
+
+    iteration = 0;
+    undoStack = [];
+    redoStack = [];
+
+    document.getElementById("history").innerHTML = "";
+
+    calculateChoices();
+}
+
+function calculateChoices() {
+    let step = offset / Math.pow(2, iteration);
+
+    currentUp = r(currentS + step);
+    currentDown = r(currentS - step);
+
+    document.getElementById("current").innerHTML =
+        `Iteration ${iteration}<br>
+        Sᵢ = ${r(currentS)}<br>
+        S↑ = ${currentUp}<br>
+        S↓ = ${currentDown}`;
+
+    updateUI();
+}
+
+function updateUI() {
+    document.getElementById("curS").innerText = r(currentS);
+
+    let step = offset / Math.pow(2, iteration);
+    document.getElementById("step").innerText = r(step);
+
+    document.getElementById("range").innerText =
+        `${currentDown} → ${currentUp}`;
+
+    document.getElementById("fill").style.width =
+        Math.min(iteration * 10, 100) + "%";
+}
+
+function choose(dir) {
+
+    undoStack.push({
+        currentS,
+        iteration,
+        html: document.getElementById("history").innerHTML
+    });
+
+    redoStack = [];
+
+    let chosen = dir === "UP" ? currentUp : currentDown;
+    let next = r((currentS + chosen) / 2);
+
+    let row =
+        `<tr>
+            <td>${iteration}</td>
+            <td>${r(currentS)}</td>
+            <td>${currentUp}</td>
+            <td>${currentDown}</td>
+            <td>${dir}</td>
+            <td>${next}</td>
+        </tr>`;
+
+    document.getElementById("history").innerHTML += row;
+
+    currentS = next;
+    iteration++;
+
+    calculateChoices();
+}
+
+function undo() {
+    if (!undoStack.length) return;
+
+    redoStack.push({
+        currentS,
+        iteration,
+        html: document.getElementById("history").innerHTML
+    });
+
+    let prev = undoStack.pop();
+
+    currentS = prev.currentS;
+    iteration = prev.iteration;
+
+    document.getElementById("history").innerHTML = prev.html;
+
+    calculateChoices();
+}
+
+function redo() {
+    if (!redoStack.length) return;
+
+    undoStack.push({
+        currentS,
+        iteration,
+        html: document.getElementById("history").innerHTML
+    });
+
+    let next = redoStack.pop();
+
+    currentS = next.currentS;
+    iteration = next.iteration;
+
+    document.getElementById("history").innerHTML = next.html;
+
+    calculateChoices();
+}
+
+/* RESET ONLY CALCULATOR */
+function resetCalculator() {
+    currentS = 0;
+    offset = 0;
+    iteration = 0;
+
+    currentUp = 0;
+    currentDown = 0;
+
+    undoStack = [];
+    redoStack = [];
+
+    document.getElementById("history").innerHTML = "";
+    document.getElementById("current").innerHTML = "";
+
+    document.getElementById("curS").innerText = "0";
+    document.getElementById("range").innerText = "0";
+    document.getElementById("step").innerText = "0";
+    document.getElementById("fill").style.width = "0%";
+}
+</script>
+
+</body>
+</html>
